@@ -1,17 +1,32 @@
 from flask import Flask, render_template, request, redirect
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import os
+import json
 
 app = Flask(__name__)
 
-# Autenticação com a API do Google Sheets
+# Escopos para o Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+
+# Pega a variável de ambiente com o JSON das credenciais
+credentials_json = os.environ.get("GOOGLE_CREDENTIALS")
+
+if not credentials_json:
+    raise Exception("Variável de ambiente GOOGLE_CREDENTIALS não encontrada")
+
+# Converte string JSON para dicionário
+credentials_dict = json.loads(credentials_json)
+
+# Cria as credenciais a partir do dicionário
+creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
+
+# Autoriza o gspread
 client = gspread.authorize(creds)
 
-# Abrir a planilha pelo ID
+# ID da planilha
 SHEET_ID = "1JSpR61iLgxBjAJE2KNjSOQiXuAopfDIrBjDVwnYu2VU"
-sheet = client.open_by_key(SHEET_ID).sheet1  # Primeira aba da planilha
+sheet = client.open_by_key(SHEET_ID).sheet1
 
 @app.route("/", methods=["GET", "POST"])
 def index():
