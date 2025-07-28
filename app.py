@@ -25,7 +25,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope
 client = gspread.authorize(creds)
 
 # ID da planilha
-SHEET_ID = "1JSpR61iLgxBjAJE2KNjSOQiXuAopfDIrBjDVwnYu2VU"
+SHEET_ID = "1J5pR6iILpXBjAJE2KNjSQQiXuAopfDIrBjDVmYu2VU"
 sheet = client.open_by_key(SHEET_ID).sheet1
 
 @app.route("/", methods=["GET", "POST"])
@@ -39,5 +39,17 @@ def index():
     registros = sheet.get_all_records()
     return render_template("index.html", registros=registros)
 
+@app.route("/delete/<int:index>", methods=["POST"])
+def delete_link(index):
+    try:
+        # gspread rows are 1-indexed, and header is row 1, so data starts from row 2
+        # The HTML loop.index0 is 0-indexed, so we need to add 2 to get the correct row number
+        sheet.delete_rows(index + 2)
+        return '', 204  # No Content
+    except Exception as e:
+        print(f"Erro ao excluir link: {e}")
+        return 'Erro ao excluir o link.', 500
+
 if __name__ == "__main__":
     app.run(debug=True)
+
