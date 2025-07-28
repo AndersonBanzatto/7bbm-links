@@ -19,7 +19,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope
 client = gspread.authorize(creds)
 
 # Abrir planilha
-SHEET_ID = "1J5pR6iILpXBjAJE2KNjSQQiXuAopfDIrBjDVmYu2VU"
+SHEET_ID = "1JSpR61iLgxBjAJE2KNjSOQiXuAopfDIrBjDVwnYu2VU"
 sheet = client.open_by_key(SHEET_ID).sheet1
 
 # Página inicial
