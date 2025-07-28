@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Links Úteis - CBMPR Colombo</title>
+    <style>
+        body { font-family: Arial; background: #f3f3f3; text-align: center; padding: 30px; }
+        .logo { width: 150px; margin-bottom: 20px; }
+        ul { list-style: none; padding: 0; }
+        li { margin: 10px 0; }
+        a { text-decoration: none; color: #1565c0; font-size: 18px; }
+        .btn { margin-left: 5px; background: #d32f2f; color: white; border: none; padding: 5px 8px; border-radius: 5px; }
+        .admin-controls { }
+    </style>
+</head>
+<body>
+    <img src="/static/CBMPR_2023.svg" alt="Logotipo CBMPR" class="logo">
+    <h1>Bem-vindo à página de links úteis 
+ao efetivo do 7º Batalhão do Corpo de Bombeiros Militar do Paraná</h1>
+    <p>Escolha um dos links abaixo:</p>
+    <ul id="link-list"></ul>
+    <div id="form-container" style="display: none;">
+        <h3>Adicionar novo link</h3>
+        <input type="text" id="titulo" placeholder="Título">
+        <input type="text" id="url" placeholder="URL (https://...)">
+        <button class="btn" onclick="addLink()">Adicionar</button>
+    </div>
+    <button id="edit-mode-btn" style="display: block;" onclick="toggleEditMode()">Entrar no modo edição</button>
+    <script>
+        let editMode = false;
+        let links = [];
+        async function carregarLinks() {
+            const res = await fetch('/api/links');
+            links = await res.json();
+            renderizarLinks();
+        }
+        function renderizarLinks() {
+            const ul = document.getElementById("link-list");
+            ul.innerHTML = "";
+            links.forEach((link, index) => {
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <a href="${link.url}" target="_blank">${link.titulo}</a>
+                    ${editMode ? `
+                        <span class="admin-controls">
+                            <button class="btn" onclick="editarLink(${index})">Editar</button>
+                            <button class="btn" onclick="excluirLink(${index})">Excluir</button>
+                        </span>
+                    ` : ""}
+                `;
+                ul.appendChild(li);
+            });
+        }
+        async function salvarLinks() {
+            await fetch('/api/links', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(links)
+            });
+        }
+        function addLink() {
+            const titulo = document.getElementById("titulo").value.trim();
+            const url = document.getElementById("url").value.trim();
+            if (!titulo || !url) return alert("Preencha os campos.");
+            links.push({ titulo, url });
+            document.getElementById("titulo").value = '';
+            document.getElementById("url").value = '';
+            salvarLinks().then(renderizarLinks);
+        }
+        function editarLink(i) {
+            const novoTitulo = prompt("Novo título:", links[i].titulo);
+            const novaUrl = prompt("Nova URL:", links[i].url);
+            if (novoTitulo && novaUrl) {
+                links[i] = { titulo: novoTitulo, url: novaUrl };
+                salvarLinks().then(renderizarLinks);
+            }
+        }
+        function excluirLink(i) {
+            if (confirm("Excluir este link?")) {
+                links.splice(i, 1);
+                salvarLinks().then(renderizarLinks);
+            }
+        }
+        function toggleEditMode() {
+            const senha = prompt("Senha de edição:");
+            if (senha === "cbmpr2023") {
+                editMode = true;
+                document.getElementById("form-container").style.display = "block";
+                document.getElementById("edit-mode-btn").style.display = "none";
+                renderizarLinks();
+            } else {
+                alert("Senha incorreta.");
+            }
+        }
+        carregarLinks();
+    </script>
+</body>
+</html>
